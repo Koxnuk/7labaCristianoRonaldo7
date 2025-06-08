@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Currency Details</title>
+</head>
+<body>
+<h1>Currency Details</h1>
+<p>ID: <span th:text="${currency.curId}"></span></p>
+<p>Code: <span th:text="${currency.curCode}"></span></p>
+<p>Abbreviation: <span th:text="${currency.curAbbreviation}"></span></p>
+<p>Name: <span th:text="${currency.curName}"></span></p>
+<p>Scale: <span th:text="${currency.curScale}"></span></p>
+<h2>Rates</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>Official Rate</th>
+        <th>Scale</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="rate : ${currency.rates}">
+        <td th:text="${rate.date}"></td>
+        <td th:text="${rate.curOfficialRate}"></td>
+        <td th:text="${rate.curScale}"></td>
+        <td>
+            <a th:href="@{/rates/{id}/edit(id=${rate.id})}">Edit</a>
+            <form th:action="@{/rates/{id}/delete(id=${rate.id})}" method="post" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<a th:href="@{/rates/new(currencyId=${currency.curId})}">Add New Rate</a>
+<a th:href="@{/currencies}">Back to List</a>
+</body>
+</html>

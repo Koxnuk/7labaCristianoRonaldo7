@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Currencies</title>
+</head>
+<body>
+<h1>Currencies</h1>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Code</th>
+        <th>Abbreviation</th>
+        <th>Name</th>
+        <th>Scale</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="currency : ${currencies}">
+        <td th:text="${currency.curId}"></td>
+        <td th:text="${currency.curCode}"></td>
+        <td th:text="${currency.curAbbreviation}"></td>
+        <td th:text="${currency.curName}"></td>
+        <td th:text="${currency.curScale}"></td>
+        <td>
+            <a th:href="@{/currencies/{id}(id=${currency.curId})}">View</a>
+            <a th:href="@{/currencies/{id}/edit(id=${currency.curId})}">Edit</a>
+            <form th:action="@{/currencies/{id}/delete(id=${currency.curId})}" method="post" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<a th:href="@{/currencies/new}">Add New Currency</a>
+<a th:href="@{/currencies/convert}">Convert Currencies</a>
+</body>
+</html>

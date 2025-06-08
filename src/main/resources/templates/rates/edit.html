@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Rate</title>
+</head>
+<body>
+<h1>Edit Rate</h1>
+<form th:action="@{/rates/{id}(id=${rate.id})}" method="post" th:object="${rate}">
+    <input type="hidden" th:field="*{id}" />
+    <label for="curOfficialRate">Official Rate:</label>
+    <input type="number" id="curOfficialRate" th:field="*{curOfficialRate}" step="0.0001" /><br/>
+    <label for="curScale">Scale:</label>
+    <input type="number" id="curScale" th:field="*{curScale}" /><br/>
+    <label for="date">Date:</label>
+    <input type="date" id="date" th:field="*{date}" /><br/>
+    <button type="submit">Save</button>
+</form>
+<a th:href="@{/currencies/{id}(id=${rate.currency.curId})}">Back to Currency</a>
+</body>
+</html>
