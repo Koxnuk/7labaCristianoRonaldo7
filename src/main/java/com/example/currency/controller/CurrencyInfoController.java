@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -72,19 +73,26 @@ public class CurrencyInfoController {
         return ResponseEntity.ok(currency.get());
     }
 
-    @PostMapping("/api/currency/info")
+    @PostMapping(value = {"/api/currency/info", "/currencies"}, consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @Operation(summary = "Create a new currency", description = "Creates a new currency entry")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Currency created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CurrencyInfo> createCurrency(@Valid @RequestBody CurrencyInfo currencyInfo) {
-        CurrencyInfo created = currencyService.createCurrency(currencyInfo);
+    public Object createCurrency(@Valid @RequestBody(required = false) CurrencyInfo currencyInfo,
+                                @ModelAttribute("currency") @Valid CurrencyInfo currencyModel,
+                                @RequestHeader(value = "Accept", defaultValue = MediaType.APPLICATION_JSON_VALUE) String acceptHeader) {
+        CurrencyInfo currency = currencyInfo != null ? currencyInfo : currencyModel;
+        CurrencyInfo created = currencyService.createCurrency(currency);
+        if (acceptHeader.contains(MediaType.TEXT_HTML_VALUE)) {
+            return "redirect:/currencies";
+        }
         return ResponseEntity.ok(created);
     }
 
-    @PutMapping("/api/currency/info/{id}")
+    @PutMapping(value = "/api/currency/info/{id}")
+    @PostMapping(value = "/currencies/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @Operation(summary = "Update a currency", description = "Updates an existing currency by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Currency updated successfully"),
@@ -92,20 +100,32 @@ public class CurrencyInfoController {
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CurrencyInfo> updateCurrency(@PathVariable Integer id, @Valid @RequestBody CurrencyInfo currencyInfo) {
-        CurrencyInfo updated = currencyService.updateCurrency(id, currencyInfo);
+    public Object updateCurrency(@PathVariable Integer id,
+                                @Valid @RequestBody(required = false) CurrencyInfo currencyInfo,
+                                @ModelAttribute("currency") @Valid CurrencyInfo currencyModel,
+                                @RequestHeader(value = "Accept", defaultValue = MediaType.APPLICATION_JSON_VALUE) String acceptHeader) {
+        CurrencyInfo currency = currencyInfo != null ? currencyInfo : currencyModel;
+        CurrencyInfo updated = currencyService.updateCurrency(id, currency);
+        if (acceptHeader.contains(MediaType.TEXT_HTML_VALUE)) {
+            return "redirect:/currencies";
+        }
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/api/currency/info/{id}")
+    @DeleteMapping(value = "/api/currency/info/{id}")
+    @PostMapping(value = "/currencies/{id}/delete")
     @Operation(summary = "Delete a currency", description = "Deletes a currency by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Currency deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Currency not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Void> deleteCurrency(@PathVariable Integer id) {
+    public Object deleteCurrency(@PathVariable Integer id,
+                                @RequestHeader(value = "Accept", defaultValue = MediaType.APPLICATION_JSON_VALUE) String acceptHeader) {
         currencyService.deleteCurrency(id);
+        if (acceptHeader.contains(MediaType.TEXT_HTML_VALUE)) {
+            return "redirect:/currencies";
+        }
         return ResponseEntity.noContent().build();
     }
 
@@ -125,12 +145,11 @@ public class CurrencyInfoController {
             @ApiResponse(responseCode = "200", description = "Counter reset successfully"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Void> resetCounter() {
+    public ResponseEntity<Void> reset resetCounter() {
         requestCounter.reset();
         return ResponseEntity.ok().build();
     }
 
-    // Web methods
     @GetMapping("/currencies")
     public String listCurrencies(Model model) {
         model.addAttribute("currencies", currencyService.getAllCurrenciesFromDb());
@@ -141,12 +160,6 @@ public class CurrencyInfoController {
     public String newCurrencyForm(Model model) {
         model.addAttribute("currency", new CurrencyInfo());
         return "currencies/new";
-    }
-
-    @PostMapping("/currencies")
-    public String createCurrencyWeb(@ModelAttribute CurrencyInfo currency) {
-        currencyService.createCurrency(currency);
-        return "redirect:/currencies";
     }
 
     @GetMapping("/currencies/{id}")
@@ -161,18 +174,6 @@ public class CurrencyInfoController {
         CurrencyInfo currency = currencyService.getCurrencyById(id).orElseThrow();
         model.addAttribute("currency", currency);
         return "currencies/edit";
-    }
-
-    @PostMapping("/currencies/{id}")
-    public String updateCurrencyWeb(@PathVariable Integer id, @ModelAttribute CurrencyInfo currency) {
-        currencyService.updateCurrency(id, currency);
-        return "redirect:/currencies";
-    }
-
-    @PostMapping("/currencies/{id}/delete")
-    public String deleteCurrencyWeb(@PathVariable Integer id) {
-        currencyService.deleteCurrency(id);
-        return "redirect:/currencies";
     }
 
     @GetMapping("/currencies/convert")
